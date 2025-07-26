@@ -127,7 +127,7 @@ try {
                 <div class="card-header">
                     <div>
                         <div class="card-title">Total Revenue</div>
-                        <div class="card-value">$<?php echo number_format($totalRevenue, 2); ?></div>
+                        <div class="card-value">₹<?php echo number_format($totalRevenue, 2); ?></div>
                     </div>
                     <div class="card-icon purple">💰</div>
                 </div>
@@ -199,7 +199,7 @@ try {
                             <td><?php echo htmlspecialchars($invoice['invoice_number']); ?></td>
                             <td><?php echo htmlspecialchars($invoice['first_name'] . ' ' . $invoice['last_name']); ?></td>
                             <td><?php echo htmlspecialchars($invoice['service_name']); ?></td>
-                            <td>$<?php echo number_format($invoice['total_amount'], 2); ?></td>
+                            <td>₹<?php echo number_format($invoice['total_amount'], 2); ?></td>
                             <td>
                                 <span class="badge badge-<?php echo $invoice['status']; ?>">
                                     <?php echo ucfirst(htmlspecialchars($invoice['status'])); ?>
