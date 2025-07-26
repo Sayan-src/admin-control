@@ -18,7 +18,7 @@ function closeModal(modalId) {
 }
 
 // Close modal when clicking outside
-window.onclick = function(event) {
+window.onclick = function (event) {
     const modals = document.querySelectorAll('.modal');
     modals.forEach(modal => {
         if (event.target === modal) {
@@ -42,7 +42,7 @@ function editMember(memberData) {
     document.getElementById('edit_zip_code').value = memberData.zip_code || '';
     document.getElementById('edit_membership_type').value = memberData.membership_type;
     document.getElementById('edit_status').value = memberData.status;
-    
+
     openModal('editMemberModal');
 }
 
@@ -64,7 +64,7 @@ function editInvoice(invoiceData) {
     document.getElementById('edit_due_date').value = invoiceData.due_date;
     document.getElementById('edit_status').value = invoiceData.status;
     document.getElementById('edit_notes').value = invoiceData.notes || '';
-    
+
     openModal('editInvoiceModal');
 }
 
@@ -82,7 +82,7 @@ function viewInvoice(invoiceId) {
 function updateServicePrice() {
     const serviceSelect = document.getElementById('service_id');
     const amountInput = document.getElementById('amount');
-    
+
     if (serviceSelect && amountInput) {
         const selectedOption = serviceSelect.options[serviceSelect.selectedIndex];
         if (selectedOption && selectedOption.dataset.price) {
@@ -99,14 +99,14 @@ function exportMembers() {
     const status = urlParams.get('status');
     const membershipType = urlParams.get('membership_type');
     const search = urlParams.get('search');
-    
+
     let exportUrl = 'export_members.php?';
     if (startDate) exportUrl += `start_date=${startDate}&`;
     if (endDate) exportUrl += `end_date=${endDate}&`;
     if (status) exportUrl += `status=${status}&`;
     if (membershipType) exportUrl += `membership_type=${membershipType}&`;
     if (search) exportUrl += `search=${encodeURIComponent(search)}&`;
-    
+
     window.open(exportUrl, '_blank');
 }
 
@@ -117,14 +117,14 @@ function exportInvoices() {
     const status = urlParams.get('status');
     const memberId = urlParams.get('member_id');
     const search = urlParams.get('search');
-    
+
     let exportUrl = 'export_invoices.php?';
     if (startDate) exportUrl += `start_date=${startDate}&`;
     if (endDate) exportUrl += `end_date=${endDate}&`;
     if (status) exportUrl += `status=${status}&`;
     if (memberId) exportUrl += `member_id=${memberId}&`;
     if (search) exportUrl += `search=${encodeURIComponent(search)}&`;
-    
+
     window.open(exportUrl, '_blank');
 }
 
@@ -132,10 +132,10 @@ function exportInvoices() {
 function validateForm(formId) {
     const form = document.getElementById(formId);
     if (!form) return true;
-    
+
     const requiredFields = form.querySelectorAll('[required]');
     let isValid = true;
-    
+
     requiredFields.forEach(field => {
         if (!field.value.trim()) {
             field.style.borderColor = '#dc3545';
@@ -144,16 +144,26 @@ function validateForm(formId) {
             field.style.borderColor = '#e1e5e9';
         }
     });
-    
+
     return isValid;
 }
 
 // Add form validation to all forms
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     const forms = document.querySelectorAll('form');
+    // forms.forEach(form => {
+    //     form.addEventListener('submit', function (e) {
+    //         if (!validateForm(form.id)) {
+    //             e.preventDefault();
+    //             alert('Please fill in all required fields.');
+    //         }
+    //     });
+    // });
     forms.forEach(form => {
-        form.addEventListener('submit', function(e) {
-            if (!validateForm(form.id)) {
+        form.addEventListener('submit', function (e) {
+            if (!form.id) return; // skip if no ID
+            const isValid = validateForm(form.id);
+            if (!isValid) {
                 e.preventDefault();
                 alert('Please fill in all required fields.');
             }
@@ -176,8 +186,8 @@ document.addEventListener('DOMContentLoaded', function() {
 function setDateRange(range) {
     const today = new Date();
     let startDate, endDate;
-    
-    switch(range) {
+
+    switch (range) {
         case 'today':
             startDate = endDate = today.toISOString().split('T')[0];
             break;
@@ -200,11 +210,11 @@ function setDateRange(range) {
             endDate = new Date(today.getFullYear(), 11, 31).toISOString().split('T')[0];
             break;
     }
-    
+
     if (startDate && endDate) {
         const startDateInput = document.getElementById('start_date');
         const endDateInput = document.getElementById('end_date');
-        
+
         if (startDateInput) startDateInput.value = startDate;
         if (endDateInput) endDateInput.value = endDate;
     }
@@ -233,7 +243,7 @@ function debounce(func, wait) {
 // Auto-search with debounce
 const searchInputs = document.querySelectorAll('input[type="text"][name="search"]');
 searchInputs.forEach(input => {
-    input.addEventListener('input', debounce(function() {
+    input.addEventListener('input', debounce(function () {
         if (this.value.length >= 2 || this.value.length === 0) {
             performSearch(this.value);
         }
@@ -243,7 +253,7 @@ searchInputs.forEach(input => {
 // Print functionality
 function printInvoice(invoiceId) {
     const printWindow = window.open(`view_invoice.php?id=${invoiceId}&print=1`, '_blank');
-    printWindow.onload = function() {
+    printWindow.onload = function () {
         printWindow.print();
     };
 }
@@ -254,8 +264,8 @@ function showLoading(button) {
     button.textContent = 'Loading...';
     button.disabled = true;
     button.classList.add('loading');
-    
-    return function() {
+
+    return function () {
         button.textContent = originalText;
         button.disabled = false;
         button.classList.remove('loading');
@@ -263,10 +273,10 @@ function showLoading(button) {
 }
 
 // Add loading states to submit buttons
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     const submitButtons = document.querySelectorAll('button[type="submit"]');
     submitButtons.forEach(button => {
-        button.addEventListener('click', function() {
+        button.addEventListener('click', function () {
             const hideLoading = showLoading(this);
             setTimeout(hideLoading, 2000); // Fallback in case form doesn't submit
         });
@@ -288,19 +298,19 @@ function makeTableResponsive() {
 document.addEventListener('DOMContentLoaded', makeTableResponsive);
 
 // Keyboard shortcuts
-document.addEventListener('keydown', function(e) {
+document.addEventListener('keydown', function (e) {
     // Ctrl/Cmd + N for new member
     if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
         e.preventDefault();
         openModal('addMemberModal');
     }
-    
+
     // Ctrl/Cmd + I for new invoice
     if ((e.ctrlKey || e.metaKey) && e.key === 'i') {
         e.preventDefault();
         openModal('createInvoiceModal');
     }
-    
+
     // Escape to close modals
     if (e.key === 'Escape') {
         const openModals = document.querySelectorAll('.modal[style*="block"]');
@@ -314,13 +324,13 @@ document.addEventListener('keydown', function(e) {
 function autoSaveForm(formId) {
     const form = document.getElementById(formId);
     if (!form) return;
-    
+
     const formData = new FormData(form);
     const data = {};
     for (let [key, value] of formData.entries()) {
         data[key] = value;
     }
-    
+
     localStorage.setItem(`form_${formId}`, JSON.stringify(data));
 }
 
@@ -328,7 +338,7 @@ function autoSaveForm(formId) {
 function restoreFormData(formId) {
     const form = document.getElementById(formId);
     if (!form) return;
-    
+
     const savedData = localStorage.getItem(`form_${formId}`);
     if (savedData) {
         const data = JSON.parse(savedData);
@@ -347,21 +357,21 @@ function clearSavedFormData(formId) {
 }
 
 // Add auto-save to forms
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     const forms = document.querySelectorAll('form');
     forms.forEach(form => {
         // Restore data on load
         restoreFormData(form.id);
-        
+
         // Auto-save on input
         const inputs = form.querySelectorAll('input, select, textarea');
         inputs.forEach(input => {
             input.addEventListener('input', () => autoSaveForm(form.id));
             input.addEventListener('change', () => autoSaveForm(form.id));
         });
-        
+
         // Clear saved data on successful submit
-        form.addEventListener('submit', function() {
+        form.addEventListener('submit', function () {
             setTimeout(() => clearSavedFormData(form.id), 1000);
         });
     });
