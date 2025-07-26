@@ -2,6 +2,8 @@
 session_start();
 require_once '../config/database.php';
 
+
+
 // Check if admin is logged in
 if(!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
     header('Location: ../auth/login.php');
@@ -38,8 +40,8 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
         if($action === 'add') {
             $memberId = generateMemberId();
             $stmt = $pdo->prepare("
-                INSERT INTO members (member_id, first_name, last_name, email, phone, address, city, state, zip_code, membership_type, status) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO members (member_id, first_name, last_name, email, phone, address, country, city, membership_type, status) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ");
             $stmt->execute([
                 $memberId,
@@ -48,9 +50,9 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $_POST['email'],
                 $_POST['phone'],
                 $_POST['address'],
+                $_POST['country'],
                 $_POST['city'],
-                $_POST['state'],
-                $_POST['zip_code'],
+                // $_POST['zip_code'],
                 $_POST['membership_type'],
                 $_POST['status']
             ]);
@@ -59,8 +61,8 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
         } elseif($action === 'edit') {
             $stmt = $pdo->prepare("
                 UPDATE members SET 
-                first_name = ?, last_name = ?, email = ?, phone = ?, address = ?, 
-                city = ?, state = ?, zip_code = ?, membership_type = ?, status = ?
+                first_name = ?, last_name = ?, email = ?, phone = ?, address = ?, country = ?,
+                city = ?,   membership_type = ?, status = ?
                 WHERE id = ?
             ");
             $stmt->execute([
@@ -69,9 +71,9 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $_POST['email'],
                 $_POST['phone'],
                 $_POST['address'],
+                $_POST['country'],
                 $_POST['city'],
-                $_POST['state'],
-                $_POST['zip_code'],
+                // $_POST['zip_code'],
                 $_POST['membership_type'],
                 $_POST['status'],
                 $_POST['id']
@@ -79,7 +81,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
             $message = 'Member updated successfully';
         }
     } catch(PDOException $e) {
-        $error = 'Database error: ' . $e->getMessage();
+        die('Database Error: ' . $e->getMessage());
     }
 }
 
@@ -210,9 +212,10 @@ try {
                     <label for="membership_type">Membership Type</label>
                     <select id="membership_type" name="membership_type">
                         <option value="">All Types</option>
-                        <option value="basic" <?php echo $membershipType === 'basic' ? 'selected' : ''; ?>>Basic</option>
-                        <option value="premium" <?php echo $membershipType === 'premium' ? 'selected' : ''; ?>>Premium</option>
-                        <option value="enterprise" <?php echo $membershipType === 'enterprise' ? 'selected' : ''; ?>>Enterprise</option>
+                        <option value="life member" <?php echo $membershipType === 'life member' ? 'selected' : ''; ?>>Life Member</option>
+                        <option value="executive member" <?php echo $membershipType === 'executive member' ? 'selected' : ''; ?>>Executive Member</option>
+                        <option value="associate member" <?php echo $membershipType === 'associate member' ? 'selected' : ''; ?>>Associate Member</option>
+                        <option value="student member" <?php echo $membershipType === 'student memberr' ? 'selected' : ''; ?>>Student Member</option>
                     </select>
                 </div>
                 
@@ -281,83 +284,274 @@ try {
     </div>
 
     <!-- Add Member Modal -->
-    <div id="addMemberModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 class="modal-title">Add New Member</h3>
-                <span class="close" onclick="closeModal('addMemberModal')">&times;</span>
-            </div>
-            <form method="POST">
-                <input type="hidden" name="action" value="add">
-                
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="first_name">First Name</label>
-                        <input type="text" id="first_name" name="first_name" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="last_name">Last Name</label>
-                        <input type="text" id="last_name" name="last_name" required>
-                    </div>
-                </div>
-                
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="email">Email</label>
-                        <input type="email" id="email" name="email" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="phone">Phone</label>
-                        <input type="tel" id="phone" name="phone">
-                    </div>
-                </div>
-                
-                <div class="form-group">
-                    <label for="address">Address</label>
-                    <textarea id="address" name="address" rows="3"></textarea>
-                </div>
-                
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="city">City</label>
-                        <input type="text" id="city" name="city">
-                    </div>
-                    <div class="form-group">
-                        <label for="state">State</label>
-                        <input type="text" id="state" name="state">
-                    </div>
-                    <div class="form-group">
-                        <label for="zip_code">Zip Code</label>
-                        <input type="text" id="zip_code" name="zip_code">
-                    </div>
-                </div>
-                
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="membership_type">Membership Type</label>
-                        <select id="membership_type" name="membership_type" required>
-                            <option value="basic">Basic</option>
-                            <option value="premium">Premium</option>
-                            <option value="enterprise">Enterprise</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="status">Status</label>
-                        <select id="status" name="status" required>
-                            <option value="active">Active</option>
-                            <option value="inactive">Inactive</option>
-                            <option value="suspended">Suspended</option>
-                        </select>
-                    </div>
-                </div>
-                
-                <div class="form-actions">
-                    <button type="submit" class="btn btn-primary">Add Member</button>
-                    <button type="button" onclick="closeModal('addMemberModal')" class="btn btn-secondary">Cancel</button>
-                </div>
-            </form>
+    <!-- Add Member Modal - FIXED VERSION -->
+<div id="addMemberModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">Add New Member</h3>
+            <span class="close" onclick="closeModal('addMemberModal')">&times;</span>
         </div>
+        <form method="POST" id="addMemberForm">
+            <input type="hidden" name="action" value="add">
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="first_name">First Name</label>
+                    <input type="text" id="first_name" name="first_name" required>
+                </div>
+                <div class="form-group">
+                    <label for="last_name">Last Name</label>
+                    <input type="text" id="last_name" name="last_name" required>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="phone">Phone</label>
+                    <input type="tel" id="phone" name="phone">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="address">Address</label>
+                <textarea id="address" name="address" rows="3"></textarea>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="country">Country</label>
+                    <input list="countryList" id="country" name="country" required>
+                    <datalist id="countryList">
+  <option value="Afghanistan">
+  <option value="Albania">
+  <option value="Algeria">
+  <option value="Andorra">
+  <option value="Angola">
+  <option value="Argentina">
+  <option value="Armenia">
+  <option value="Australia">
+  <option value="Austria">
+  <option value="Azerbaijan">
+  <option value="Bahamas">
+  <option value="Bahrain">
+  <option value="Bangladesh">
+  <option value="Barbados">
+  <option value="Belarus">
+  <option value="Belgium">
+  <option value="Belize">
+  <option value="Benin">
+  <option value="Bhutan">
+  <option value="Bolivia">
+  <option value="Bosnia and Herzegovina">
+  <option value="Botswana">
+  <option value="Brazil">
+  <option value="Brunei">
+  <option value="Bulgaria">
+  <option value="Burkina Faso">
+  <option value="Burundi">
+  <option value="Cambodia">
+  <option value="Cameroon">
+  <option value="Canada">
+  <option value="Cape Verde">
+  <option value="Central African Republic">
+  <option value="Chad">
+  <option value="Chile">
+  <option value="China">
+  <option value="Colombia">
+  <option value="Comoros">
+  <option value="Costa Rica">
+  <option value="Croatia">
+  <option value="Cuba">
+  <option value="Cyprus">
+  <option value="Czech Republic">
+  <option value="Denmark">
+  <option value="Djibouti">
+  <option value="Dominica">
+  <option value="Dominican Republic">
+  <option value="Ecuador">
+  <option value="Egypt">
+  <option value="El Salvador">
+  <option value="Equatorial Guinea">
+  <option value="Eritrea">
+  <option value="Estonia">
+  <option value="Eswatini">
+  <option value="Ethiopia">
+  <option value="Fiji">
+  <option value="Finland">
+  <option value="France">
+  <option value="Gabon">
+  <option value="Gambia">
+  <option value="Georgia">
+  <option value="Germany">
+  <option value="Ghana">
+  <option value="Greece">
+  <option value="Grenada">
+  <option value="Guatemala">
+  <option value="Guinea">
+  <option value="Guyana">
+  <option value="Haiti">
+  <option value="Honduras">
+  <option value="Hungary">
+  <option value="Iceland">
+  <option value="India">
+  <option value="Indonesia">
+  <option value="Iran">
+  <option value="Iraq">
+  <option value="Ireland">
+  <option value="Israel">
+  <option value="Italy">
+  <option value="Jamaica">
+  <option value="Japan">
+  <option value="Jordan">
+  <option value="Kazakhstan">
+  <option value="Kenya">
+  <option value="Kiribati">
+  <option value="Kuwait">
+  <option value="Kyrgyzstan">
+  <option value="Laos">
+  <option value="Latvia">
+  <option value="Lebanon">
+  <option value="Lesotho">
+  <option value="Liberia">
+  <option value="Libya">
+  <option value="Liechtenstein">
+  <option value="Lithuania">
+  <option value="Luxembourg">
+  <option value="Madagascar">
+  <option value="Malawi">
+  <option value="Malaysia">
+  <option value="Maldives">
+  <option value="Mali">
+  <option value="Malta">
+  <option value="Marshall Islands">
+  <option value="Mauritania">
+  <option value="Mauritius">
+  <option value="Mexico">
+  <option value="Micronesia">
+  <option value="Moldova">
+  <option value="Monaco">
+  <option value="Mongolia">
+  <option value="Montenegro">
+  <option value="Morocco">
+  <option value="Mozambique">
+  <option value="Myanmar">
+  <option value="Namibia">
+  <option value="Nauru">
+  <option value="Nepal">
+  <option value="Netherlands">
+  <option value="New Zealand">
+  <option value="Nicaragua">
+  <option value="Niger">
+  <option value="Nigeria">
+  <option value="North Korea">
+  <option value="North Macedonia">
+  <option value="Norway">
+  <option value="Oman">
+  <option value="Pakistan">
+  <option value="Palau">
+  <option value="Palestine">
+  <option value="Panama">
+  <option value="Papua New Guinea">
+  <option value="Paraguay">
+  <option value="Peru">
+  <option value="Philippines">
+  <option value="Poland">
+  <option value="Portugal">
+  <option value="Qatar">
+  <option value="Romania">
+  <option value="Russia">
+  <option value="Rwanda">
+  <option value="Saint Kitts and Nevis">
+  <option value="Saint Lucia">
+  <option value="Saint Vincent and the Grenadines">
+  <option value="Samoa">
+  <option value="San Marino">
+  <option value="Sao Tome and Principe">
+  <option value="Saudi Arabia">
+  <option value="Senegal">
+  <option value="Serbia">
+  <option value="Seychelles">
+  <option value="Sierra Leone">
+  <option value="Singapore">
+  <option value="Slovakia">
+  <option value="Slovenia">
+  <option value="Solomon Islands">
+  <option value="Somalia">
+  <option value="South Africa">
+  <option value="South Korea">
+  <option value="South Sudan">
+  <option value="Spain">
+  <option value="Sri Lanka">
+  <option value="Sudan">
+  <option value="Suriname">
+  <option value="Sweden">
+  <option value="Switzerland">
+  <option value="Syria">
+  <option value="Taiwan">
+  <option value="Tajikistan">
+  <option value="Tanzania">
+  <option value="Thailand">
+  <option value="Togo">
+  <option value="Tonga">
+  <option value="Trinidad and Tobago">
+  <option value="Tunisia">
+  <option value="Turkey">
+  <option value="Turkmenistan">
+  <option value="Tuvalu">
+  <option value="Uganda">
+  <option value="Ukraine">
+  <option value="United Arab Emirates">
+  <option value="United Kingdom">
+  <option value="United States">
+  <option value="Uruguay">
+  <option value="Uzbekistan">
+  <option value="Vanuatu">
+  <option value="Vatican City">
+  <option value="Venezuela">
+  <option value="Vietnam">
+  <option value="Yemen">
+  <option value="Zambia">
+  <option value="Zimbabwe">
+</datalist>
+                </div>
+                <div class="form-group">
+                    <label for="city">City</label>
+                    <input type="text" id="city" name="city">
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="membership_type">Membership Type</label>
+                    <select id="membership_type" name="membership_type" required>
+                        <option value="">-- Select Membership Type --</option>
+                        <option value="life member">Life Member</option>
+                        <option value="executive member">Executive Member</option>
+                        <option value="associate member">Associate Member</option>
+                        <option value="student member">Student Member</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="status">Status</label>
+                    <select id="status" name="status" required>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                        <option value="suspended">Suspended</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Add Member</button>
+                <button type="button" onclick="closeModal('addMemberModal')" class="btn btn-secondary">Cancel</button>
+            </div>
+        </form>
     </div>
+</div>
 
     <!-- Edit Member Modal -->
     <div id="editMemberModal" class="modal">
@@ -406,10 +600,10 @@ try {
                         <label for="edit_state">State</label>
                         <input type="text" id="edit_state" name="state">
                     </div>
-                    <div class="form-group">
+                    <!-- <div class="form-group">
                         <label for="edit_zip_code">Zip Code</label>
                         <input type="text" id="edit_zip_code" name="zip_code">
-                    </div>
+                    </div> -->
                 </div>
                 
                 <div class="form-row">
